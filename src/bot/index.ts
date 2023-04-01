@@ -49,11 +49,9 @@ export class TelegramBot {
     });
 
     // TODO: Throws strange error on unformatted message
-    this.bot.on("message", async ({ chat, text, date }) => {
+    this.bot.on("message", async ({ chat, text }) => {
       if (!text) return;
-      // To prevent extra replies
-      const now = new Date().getTime().toString();
-      if (+now.slice(0, now.length - 3) > date) return;
+      console.log(text);
 
       const name = this.data[chat.id];
       const splitedText = text.split(",");
@@ -63,7 +61,7 @@ export class TelegramBot {
       if (name?.toLowerCase() !== possibleName.toLowerCase()) return;
 
       const response = await this.aiService.sendRequest(requestText);
-
+      console.log(response);
       this.bot.sendMessage(chat.id, response);
     });
   }
