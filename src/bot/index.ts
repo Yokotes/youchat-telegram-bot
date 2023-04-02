@@ -30,7 +30,7 @@ export class TelegramBot {
   private addListeners() {
     // Setting bot name
     this.bot.onText(/\/setname (.+)/, ({ from, chat, date }, match) => {
-      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers...)
+      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers)
       const now = new Date().getTime().toString();
       if (+now.slice(0, now.length - 3) > date) return;
 
@@ -51,7 +51,7 @@ export class TelegramBot {
     // TODO: Throws strange error on unformatted message
     this.bot.on("message", async ({ chat, text, date }) => {
       if (!text) return;
-      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers...)
+      // To prevent extra replies
       const now = new Date().getTime().toString();
       if (+now.slice(0, now.length - 3) > date) return;
 
