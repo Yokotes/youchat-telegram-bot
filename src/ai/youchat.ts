@@ -6,7 +6,9 @@ export class YouChatService implements AIService {
   async sendRequest(text: string) {
     try {
       const test = await axios.get(
-        `https://api.betterapi.net/youdotcom/chat?message=${text}&key=${process.env.YOUCHAT_TOKEN}`
+        `https://api.betterapi.net/youdotcom/chat?message=${
+          text + (process.env.POSTFIX_TO_REQUEST || "")
+        }&key=${process.env.YOUCHAT_TOKEN}`
       );
 
       return test.data.message;
