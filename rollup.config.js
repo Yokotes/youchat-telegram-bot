@@ -4,7 +4,7 @@ import pkg from "./package.json" assert { type: "json" };
 const config = {
   input: "src/index.ts",
   output: {
-    file: "dist/bundle.js",
+    file: "api/webhook.js",
   },
   plugins: [ts()],
   external: [...Object.keys(pkg.dependencies), "fs"],
