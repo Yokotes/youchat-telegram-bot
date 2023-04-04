@@ -1,13 +1,17 @@
-import NodeTelegramBot from "node-telegram-bot-api";
+import { Telegraf } from "telegraf";
 import { AIService } from "../ai";
 import { writeFileSync, readFileSync } from "fs";
+import { VercelRequest, VercelResponse } from "@vercel/node";
+import { TelegrafContext } from "telegraf/typings/context";
+
+const VERCEL_URL = process.env.VERCEL_URL;
 
 export class TelegramBot {
-  private bot: NodeTelegramBot;
+  private bot: Telegraf<TelegrafContext>;
   private data: Record<string, string>;
 
   constructor(private readonly aiService: AIService) {
-    this.bot = new NodeTelegramBot(process.env.BOT_TOKEN, { polling: true });
+    this.bot = new Telegraf(process.env.BOT_TOKEN);
     this.data = this.loadData();
   }
 
@@ -27,44 +31,57 @@ export class TelegramBot {
     }
   }
 
-  private addListeners() {
-    // Setting bot name
-    this.bot.onText(/\/setname (.+)/, ({ from, chat, date }, match) => {
-      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers)
-      const now = new Date().getTime().toString();
-      if (+now.slice(0, now.length - 3) > date) return;
+  async useWebhook(request: VercelRequest, response: VercelResponse) {
+    try {
+      const getWebhookInfo = await this.bot.telegram.getWebhookInfo();
 
-      if (from.id.toString() !== process.env.ADMIN_ID) {
-        return this.bot.sendMessage(chat.id, "You don't have a permission!");
+      const botInfo = await this.bot.telegram.getMe();
+      this.bot.options.username = botInfo.username;
+      console.info(
+        "Server has initialized bot username using Webhook. ",
+        botInfo.username
+      );
+
+      if (getWebhookInfo.url !== VERCEL_URL + "/api") {
+        await this.bot.telegram.deleteWebhook();
+        await this.bot.telegram.setWebhook(`${VERCEL_URL}/api`);
       }
 
-      try {
-        this.data[chat.id] = match[1];
+      if (request.method === "POST") {
+        this.bot.handleUpdate(request.body, response);
+      } else {
+        console.log("Waiting for events");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
+  private addListeners() {
+    // Setting bot name
+    this.bot.command("setname", ({ from, chat, reply, message }) => {
+      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers)
+      if (from.id.toString() !== process.env.ADMIN_ID) {
+        return reply("You don't have a permission!");
+      }
+      try {
+        this.data[chat.id] = message.text;
         writeFileSync("data/data.json", JSON.stringify(this.data));
-        this.bot.sendMessage(chat.id, "Data setted");
+        reply("Data setted");
       } catch (e) {
         console.error(e);
       }
     });
-
     // TODO: Throws strange error on unformatted message
-    this.bot.on("message", async ({ chat, text, date }) => {
-      if (!text) return;
-      // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers...)
-      const now = new Date().getTime().toString();
-      if (+now.slice(0, now.length - 3) > date) return;
-
+    this.bot.on("message", async ({ chat, message: { text }, reply }) => {
+      // To prevent extra replies
       const name = this.data[chat.id];
       const splitedText = text.split(",");
       const possibleName = splitedText.shift();
       const requestText = splitedText.join(",").trim();
-
       if (name?.toLowerCase() !== possibleName.toLowerCase()) return;
-
       const response = await this.aiService.sendRequest(requestText);
-
-      this.bot.sendMessage(chat.id, response);
+      reply(response);
     });
   }
 }
