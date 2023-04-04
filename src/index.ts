@@ -10,5 +10,12 @@ const telegramBot = new TelegramBot(aiService);
 telegramBot.launch();
 
 module.exports = async (request: any, response: any) => {
-  response.send("OK");
+  try {
+    await telegramBot.useWebhook(request, response);
+  } catch (e) {
+    response.statusCode = 500;
+    response.setHeader("Content-Type", "text/html");
+    response.end("<h1>Server Error</h1><p>Sorry, there was a problem</p>");
+    console.error(e.message);
+  }
 };
