@@ -63,7 +63,7 @@ export class TelegramBot {
       if (request.method === "POST") {
         this.bot.handleUpdate(request.body, response);
       } else {
-        console.log("Waiting for events");
+        response.status(200).json("Listening for events...");
       }
     } catch (e) {
       console.error(e);
