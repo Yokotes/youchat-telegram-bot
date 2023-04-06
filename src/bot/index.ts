@@ -17,6 +17,17 @@ export class TelegramBot {
 
   launch() {
     this.addListeners();
+    this.botUtils();
+  }
+
+  private botUtils() {
+    this.bot.use(Telegraf.log());
+
+    this.bot.start((ctx) => {
+      return ctx.reply("This is a test bot.");
+    });
+
+    this.bot.command("about", () => console.log("test"));
   }
 
   private loadData() {
@@ -46,6 +57,8 @@ export class TelegramBot {
         await this.bot.telegram.deleteWebhook();
         await this.bot.telegram.setWebhook(`${VERCEL_URL}/api`);
       }
+
+      this.launch();
 
       if (request.method === "POST") {
         this.bot.handleUpdate(request.body, response);
