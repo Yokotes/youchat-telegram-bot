@@ -7,8 +7,6 @@ config();
 const aiService = new YouChatService();
 const telegramBot = new TelegramBot(aiService);
 
-telegramBot.launch();
-
 module.exports = async (request: any, response: any) => {
   try {
     await telegramBot.useWebhook(request, response);
