@@ -1,5 +1,5 @@
-import { YouChatService } from "./ai";
-import { TelegramBot } from "./bot";
+import { YouChatService } from "../src/ai";
+import { TelegramBot } from "../src/bot";
 import { config } from "dotenv";
 
 config();
