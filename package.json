@@ -8,8 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon dist/bundle.js",
-    "build:watch": "rollup -c -w",
-    "build": "rollup -c"
+    "build:watch": "rollup -c -w"
   },
   "dependencies": {
     "@vercel/node": "^2.10.2",
