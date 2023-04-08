@@ -4,6 +4,7 @@ import { writeFileSync, readFileSync } from "fs";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { TelegrafContext } from "telegraf/typings/context";
 import * as path from "path";
+import { DBService } from "../db";
 
 const VERCEL_URL = process.env.VERCEL_URL;
 
@@ -11,14 +12,19 @@ export class TelegramBot {
   private bot: Telegraf<TelegrafContext>;
   private data: Record<string, string>;
 
-  constructor(private readonly aiService: AIService) {
+  constructor(
+    private readonly aiService: AIService,
+    private readonly dbService: DBService
+  ) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
-    this.data = this.loadData();
   }
 
-  launch() {
+  async launch() {
+    this.data = await this.loadData();
     this.addListeners();
-    this.botUtils();
+    // this.botUtils();
+    await this.bot.launch();
+    console.log("bot started");
   }
 
   private botUtils() {
@@ -31,12 +37,9 @@ export class TelegramBot {
     this.bot.command("about", () => console.log("test"));
   }
 
-  private loadData() {
+  private async loadData() {
     try {
-      const dataString = readFileSync(
-        path.resolve(__dirname, "..", "..", "tmp", "data.json")
-      ).toString();
-      const data = JSON.parse(dataString);
+      const data = await this.dbService.load();
 
       return data;
     } catch (e) {
@@ -61,7 +64,7 @@ export class TelegramBot {
         await this.bot.telegram.setWebhook(`${VERCEL_URL}/api`);
       }
 
-      this.launch();
+      await this.launch();
 
       if (request.method === "POST") {
         this.bot.handleUpdate(request.body, response);
@@ -75,21 +78,13 @@ export class TelegramBot {
 
   private addListeners() {
     // Setting bot name
-    this.bot.command("setname", ({ from, chat, reply, message }) => {
+    this.bot.command("setname", async ({ from, chat, reply, message }) => {
       // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers)
       if (from.id.toString() !== process.env.ADMIN_ID) {
         return reply("You don't have a permission!");
       }
-      try {
-        this.data[chat.id] = message.text;
-        writeFileSync(
-          path.resolve(__dirname, "..", "..", "tmp", "data.json"),
-          JSON.stringify(this.data)
-        );
-        reply("Data setted");
-      } catch (e) {
-        console.error(e);
-      }
+      await this.dbService.save({ chatId: chat.id, name: message.text });
+      reply("Data setted");
     });
     // TODO: Throws strange error on unformatted message
     this.bot.on("message", async ({ chat, message: { text }, reply }) => {
