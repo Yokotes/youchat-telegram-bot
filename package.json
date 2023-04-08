@@ -1,7 +1,6 @@
 {
   "name": "youchat-telegram-bot",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "repository": "https://github.com/Yokotes/youchat-telegram-bot.git",
   "author": "Yokotes <takjchannel@gmail.com>",
