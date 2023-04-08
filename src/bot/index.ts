@@ -3,6 +3,7 @@ import { AIService } from "../ai";
 import { writeFileSync, readFileSync } from "fs";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { TelegrafContext } from "telegraf/typings/context";
+import * as path from "path";
 
 const VERCEL_URL = process.env.VERCEL_URL;
 
@@ -32,7 +33,9 @@ export class TelegramBot {
 
   private loadData() {
     try {
-      const dataString = readFileSync("data/data.json").toString();
+      const dataString = readFileSync(
+        path.resolve(__dirname, "..", "..", "tmp", "data.json")
+      ).toString();
       const data = JSON.parse(dataString);
 
       return data;
@@ -79,7 +82,10 @@ export class TelegramBot {
       }
       try {
         this.data[chat.id] = message.text;
-        writeFileSync("data/data.json", JSON.stringify(this.data));
+        writeFileSync(
+          path.resolve(__dirname, "..", "..", "tmp", "data.json"),
+          JSON.stringify(this.data)
+        );
         reply("Data setted");
       } catch (e) {
         console.error(e);
