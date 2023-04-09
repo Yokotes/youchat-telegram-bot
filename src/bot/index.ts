@@ -4,7 +4,7 @@ import { writeFileSync, readFileSync } from "fs";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { TelegrafContext } from "telegraf/typings/context";
 import * as path from "path";
-import { DBService } from "../db";
+import { IDBService } from "../db";
 
 const VERCEL_URL = process.env.VERCEL_URL;
 
@@ -14,7 +14,7 @@ export class TelegramBot {
 
   constructor(
     private readonly aiService: AIService,
-    private readonly dbService: DBService
+    private readonly dbService: IDBService
   ) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
   }
@@ -38,14 +38,14 @@ export class TelegramBot {
   }
 
   private async loadData() {
-    try {
-      const data = await this.dbService.load();
+    const rawData = await this.dbService.load();
+    // TODO: Fix types
+    const data = rawData.reduce((acc, item) => {
+      acc[item.chatId] = item.name;
+      return acc;
+    }, {} as typeof this.data);
 
-      return data;
-    } catch (e) {
-      console.error(e);
-      return {};
-    }
+    return data;
   }
 
   async useWebhook(request: VercelRequest, response: VercelResponse) {
@@ -83,8 +83,10 @@ export class TelegramBot {
       if (from.id.toString() !== process.env.ADMIN_ID) {
         return reply("You don't have a permission!");
       }
-      await this.dbService.save({ chatId: chat.id, name: message.text });
-      reply("Data setted");
+      const name = message.text.split(" ").slice(1).join(" ");
+      this.data[chat.id] = name;
+      await this.dbService.save({ chatId: chat.id, name });
+      reply("Data were setted");
     });
     // TODO: Throws strange error on unformatted message
     this.bot.on("message", async ({ chat, message: { text }, reply }) => {
@@ -93,7 +95,11 @@ export class TelegramBot {
       const splitedText = text.split(",");
       const possibleName = splitedText.shift();
       const requestText = splitedText.join(",").trim();
+
       if (name?.toLowerCase() !== possibleName.toLowerCase()) return;
+
+      reply("Thinking...");
+
       const response = await this.aiService.sendRequest(requestText);
       reply(response);
     });
