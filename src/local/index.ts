@@ -7,7 +7,7 @@ config();
 
 const aiService = new YouChatService();
 const DBService = DBServiceStrategy.getService();
-const mongoService = new DBService();
-const telegramBot = new TelegramBot(aiService, mongoService);
+const dbService = new DBService();
+const telegramBot = new TelegramBot(aiService, dbService);
 
 telegramBot.launch();

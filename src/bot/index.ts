@@ -22,8 +22,8 @@ export class TelegramBot {
   async launch() {
     this.data = await this.loadData();
     this.addListeners();
-    this.botUtils();
-    // await this.bot.launch();
+    // this.botUtils();
+    await this.bot.launch();
     console.log("bot started");
   }
 
@@ -80,6 +80,11 @@ export class TelegramBot {
     // Setting bot name
     this.bot.command("setname", async ({ from, chat, reply, message }) => {
       // To prevent extra replies (I really don't know why `date` doesn't have last 3 numbers)
+      const time = Date.now().toString();
+      const now = +time.slice(0, time.length - 3);
+
+      if (now !== message.date) return;
+
       if (from.id.toString() !== process.env.ADMIN_ID) {
         return reply("You don't have a permission!");
       }
@@ -89,13 +94,18 @@ export class TelegramBot {
       reply("Data were setted");
     });
     // TODO: Throws strange error on unformatted message
-    this.bot.on("message", async ({ chat, message: { text }, reply }) => {
+    this.bot.on("message", async ({ chat, message, reply }) => {
       // To prevent extra replies
+      const time = Date.now().toString();
+      const now = +time.slice(0, time.length - 3);
+
+      if (now !== message.date) return;
+
       const name = this.data[chat.id];
-      const splitedText = text.split(",");
+      const splitedText = message.text.split(",");
       const possibleName = splitedText.shift();
       const requestText = splitedText.join(",").trim();
-
+      console.log(requestText);
       if (name?.toLowerCase() !== possibleName.toLowerCase()) return;
 
       reply("Thinking...");
