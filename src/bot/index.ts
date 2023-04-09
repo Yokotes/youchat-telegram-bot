@@ -22,8 +22,8 @@ export class TelegramBot {
   async launch() {
     this.data = await this.loadData();
     this.addListeners();
-    // this.botUtils();
-    await this.bot.launch();
+    this.botUtils();
+    // await this.bot.launch();
     console.log("bot started");
   }
 
