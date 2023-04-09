@@ -1,6 +1,6 @@
 // import { NameModel } from "./models";
 import mongoose, { Model, Schema } from "mongoose";
-import { DBService } from "..";
+import { IDBService } from "..";
 import { nameSchema } from "./models";
 
 interface Name {
@@ -8,7 +8,7 @@ interface Name {
   name: string;
 }
 
-export class MongoDBService implements DBService {
+export class MongoDBService implements IDBService {
   // TODO: fix types
   private models: {
     NameModel: any;
@@ -32,6 +32,12 @@ export class MongoDBService implements DBService {
   }
 
   async load() {
-    return {};
+    try {
+      const data = await this.models.NameModel.find();
+      return data;
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
   }
 }
