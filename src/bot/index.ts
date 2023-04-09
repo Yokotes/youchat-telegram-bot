@@ -104,9 +104,9 @@ export class TelegramBot {
       const splitedText = message.text.split(",");
       const possibleName = splitedText.shift();
       const requestText = splitedText.join(",").trim();
-      console.log(requestText);
       if (name?.toLowerCase() !== possibleName.toLowerCase()) return;
 
+      console.log(requestText);
       reply("Thinking...");
 
       const response = await this.aiService.sendRequest(requestText);
