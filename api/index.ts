@@ -1,11 +1,14 @@
 import { YouChatService } from "../src/ai";
 import { TelegramBot } from "../src/bot";
 import { config } from "dotenv";
+import { DBServiceStrategy } from "../src/db";
 
 config();
 
 const aiService = new YouChatService();
-const telegramBot = new TelegramBot(aiService);
+const DBService = DBServiceStrategy.getService();
+const dbService = new DBService();
+const telegramBot = new TelegramBot(aiService, dbService);
 
 module.exports = async (request: any, response: any) => {
   try {
