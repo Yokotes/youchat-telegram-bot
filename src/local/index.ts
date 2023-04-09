@@ -1,12 +1,13 @@
 import { YouChatService } from "../ai";
 import { TelegramBot } from "../bot";
 import { config } from "dotenv";
-import { MongoDBService } from "../db/mongo";
+import { DBServiceStrategy } from "../db";
 
 config();
 
 const aiService = new YouChatService();
-const mongoService = new MongoDBService();
+const DBService = DBServiceStrategy.getService();
+const mongoService = new DBService();
 const telegramBot = new TelegramBot(aiService, mongoService);
 
 telegramBot.launch();
