@@ -24,7 +24,7 @@ export class TelegramBot {
     this.addListeners();
     this.botUtils();
     // await this.bot.launch();
-    console.log("bot started");
+    console.log("bot is running...");
   }
 
   private botUtils() {
