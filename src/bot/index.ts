@@ -59,10 +59,10 @@ export class TelegramBot {
         botInfo.username
       );
 
-      if (getWebhookInfo.url !== VERCEL_URL + "/api") {
-        console.log(getWebhookInfo);
+      if (VERCEL_URL && getWebhookInfo.url !== VERCEL_URL + "/api") {
         await this.bot.telegram.deleteWebhook();
         await this.bot.telegram.setWebhook(`${VERCEL_URL}/api`);
+        console.log("Webhook was setted");
       }
 
       await this.launch();
