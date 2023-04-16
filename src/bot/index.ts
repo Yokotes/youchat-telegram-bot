@@ -19,7 +19,6 @@ export class TelegramBot {
     private readonly dbService: IDBService
   ) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
-    this.bot.telegram.getMe().then((info) => (this.botInfo = info));
   }
 
   async launch() {
@@ -53,7 +52,9 @@ export class TelegramBot {
 
   async useWebhook(request: VercelRequest, response: VercelResponse) {
     try {
-      if (!this.botInfo) return;
+      if (!this.botInfo) {
+        this.botInfo = await this.bot.telegram.getMe();
+      }
 
       const getWebhookInfo = await this.bot.telegram.getWebhookInfo();
 
