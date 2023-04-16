@@ -5,18 +5,21 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import { TelegrafContext } from "telegraf/typings/context";
 import * as path from "path";
 import { IDBService } from "../db";
+import { User } from "telegraf/typings/telegram-types";
 
 const VERCEL_URL = process.env.VERCEL_URL;
 
 export class TelegramBot {
   private bot: Telegraf<TelegrafContext>;
   private data: Record<string, string>;
+  private botInfo: User;
 
   constructor(
     private readonly aiService: AIService,
     private readonly dbService: IDBService
   ) {
     this.bot = new Telegraf(process.env.BOT_TOKEN);
+    this.bot.telegram.getMe().then((info) => (this.botInfo = info));
   }
 
   async launch() {
@@ -50,13 +53,14 @@ export class TelegramBot {
 
   async useWebhook(request: VercelRequest, response: VercelResponse) {
     try {
+      if (!this.botInfo) return;
+
       const getWebhookInfo = await this.bot.telegram.getWebhookInfo();
 
-      const botInfo = await this.bot.telegram.getMe();
-      this.bot.options.username = botInfo.username;
+      this.bot.options.username = this.botInfo.username;
       console.info(
         "Server has initialized bot username using Webhook. ",
-        botInfo.username
+        this.botInfo.username
       );
 
       if (VERCEL_URL && getWebhookInfo.url !== VERCEL_URL + "/api") {
